@@ -475,6 +475,42 @@ public class StockManagerTest {
 		assertTrue(booksInStoreList.size() == 0);
 	}
 
+	@Test
+	public void testGetBooksInDemand() throws BookStoreException {
+		Set<BookCopy> booksToBuy = new HashSet<BookCopy>();
+		booksToBuy.add(new BookCopy(TEST_ISBN, NUM_COPIES + 1));
+
+		// Try to buy out of stock book
+		try {
+			client.buyBooks(booksToBuy);
+			fail();
+		} catch (BookStoreException ex) {
+			;
+		}
+
+		List<StockBook> booksInDemand = storeManager.getBooksInDemand();
+		StockBook bookInDemand = booksInDemand.get(0);
+		StockBook bookInStore = getDefaultBook();
+
+		assertTrue(booksInDemand.isEmpty() == false
+				&& booksInDemand.size() == 1
+				&& bookInDemand.getNumCopies() == 5
+				&& bookInDemand.getISBN() == bookInStore.getISBN());
+	}
+
+	@Test
+	public void testGetBooksInDemandReturnsEmpty() throws BookStoreException {
+		Set<BookCopy> booksToBuy = new HashSet<BookCopy>();
+		booksToBuy.add(new BookCopy(TEST_ISBN, NUM_COPIES));
+
+		// Buy all books
+		client.buyBooks(booksToBuy);
+
+		List<StockBook> booksInDemand = storeManager.getBooksInDemand();
+
+		assertTrue(booksInDemand.isEmpty());
+	}
+
 	/**
 	 * Tear down after class.
 	 *
