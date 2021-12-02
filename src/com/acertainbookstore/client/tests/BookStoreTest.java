@@ -431,6 +431,27 @@ public class BookStoreTest {
 				&& ratedBook.getAverageRating() == -1.0f);
 	}
 
+	@Test
+	public void testRateNonExistingIsbn() throws BookStoreException {
+		HashSet<BookRating> booksToRate = new HashSet<>();
+
+		booksToRate.add(new BookRating(TEST_ISBN + 1, 1));
+
+		try {
+			client.rateBooks(booksToRate);
+			fail();
+		} catch (BookStoreException ex) {
+			;
+		}
+
+		List<StockBook> booksInStorePostTest = storeManager.getBooks();
+		StockBook ratedBook = booksInStorePostTest.get(0);
+
+		assertTrue(ratedBook.getNumTimesRated() == 0
+				&& ratedBook.getTotalRating() == 0
+				&& ratedBook.getAverageRating() == -1.0f);
+	}
+
 	/**
 	 * Tear down after class.
 	 *
