@@ -6,17 +6,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.acertainbookstore.business.*;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.acertainbookstore.business.Book;
-import com.acertainbookstore.business.BookCopy;
-import com.acertainbookstore.business.CertainBookStore;
-import com.acertainbookstore.business.ImmutableStockBook;
-import com.acertainbookstore.business.StockBook;
 import com.acertainbookstore.client.BookStoreHTTPProxy;
 import com.acertainbookstore.client.StockManagerHTTPProxy;
 import com.acertainbookstore.interfaces.BookStore;
@@ -38,7 +34,7 @@ public class BookStoreTest {
 	private static final int NUM_COPIES = 5;
 
 	/** The local test. */
-	private static boolean localTest = false;
+	private static boolean localTest = true;
 
 	/** The store manager. */
 	private static StockManager storeManager;
@@ -347,6 +343,49 @@ public class BookStoreTest {
 		List<StockBook> booksInStorePostTest = storeManager.getBooks();
 		assertTrue(booksInStorePreTest.containsAll(booksInStorePostTest)
 				&& booksInStorePreTest.size() == booksInStorePostTest.size());
+	}
+
+	@Test
+	public void testRateBook() throws BookStoreException {
+		HashSet<BookRating> booksToRate = new HashSet<>();
+		booksToRate.add(new BookRating(TEST_ISBN, 3));
+		client.rateBooks(booksToRate);
+
+		List<StockBook> booksInStorePostTest = storeManager.getBooks();
+		StockBook ratedBook = booksInStorePostTest.get(0);
+		StockBook unratedBook = getDefaultBook();
+
+		assertTrue(unratedBook.getNumTimesRated() != ratedBook.getNumTimesRated()
+				&& ratedBook.getNumTimesRated() == 1
+				&& ratedBook.getTotalRating() == 3
+				&& ratedBook.getAverageRating() == 3);
+	}
+
+	@Test
+	public void testMultipleRates() throws BookStoreException {
+		HashSet<BookRating> booksToRate = new HashSet<>();
+
+		//Send multiple ratings from the same book
+		booksToRate.add(new BookRating(TEST_ISBN, 3));
+		client.rateBooks(booksToRate);
+		booksToRate.clear();
+		booksToRate.add(new BookRating(TEST_ISBN, 5));
+		client.rateBooks(booksToRate);
+		booksToRate.clear();
+		booksToRate.add(new BookRating(TEST_ISBN, 5));
+		client.rateBooks(booksToRate);
+		booksToRate.clear();
+		booksToRate.add(new BookRating(TEST_ISBN, 3));
+		client.rateBooks(booksToRate);
+
+		List<StockBook> booksInStorePostTest = storeManager.getBooks();
+		StockBook ratedBook = booksInStorePostTest.get(0);
+		StockBook unratedBook = getDefaultBook();
+
+		assertTrue(unratedBook.getNumTimesRated() != ratedBook.getNumTimesRated()
+				&& ratedBook.getNumTimesRated() == 4
+				&& ratedBook.getTotalRating() == 16
+				&& ratedBook.getAverageRating() == 4);
 	}
 
 	/**
