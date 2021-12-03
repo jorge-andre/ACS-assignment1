@@ -2,6 +2,7 @@ package com.acertainbookstore.client.tests;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -343,6 +344,44 @@ public class BookStoreTest {
 		List<StockBook> booksInStorePostTest = storeManager.getBooks();
 		assertTrue(booksInStorePreTest.containsAll(booksInStorePostTest)
 				&& booksInStorePreTest.size() == booksInStorePostTest.size());
+	}
+
+	@Test
+	public void testGetTopRatedBooks() throws BookStoreException {
+		Set<StockBook> booksToAdd = new HashSet<StockBook>();
+		StockBook book2 = new ImmutableStockBook(TEST_ISBN + 1, "The Art of Computer Programming", "Donald Knuth",
+				(float) 300, NUM_COPIES, 0, 2, 10, false);
+		booksToAdd.add(book2);
+		StockBook book3 = new ImmutableStockBook(TEST_ISBN + 2, "The C Programming Language",
+				"Dennis Ritchie and Brian Kerninghan", (float) 50, NUM_COPIES, 0, 2, 6, false);
+		booksToAdd.add(book3);
+
+		// Add books in bookstore.
+		storeManager.addBooks(booksToAdd);
+
+		List<Book> topRatedBooks = client.getTopRatedBooks(2);
+		Book topRatedBook = topRatedBooks.get(0);
+
+		assertTrue(topRatedBooks.isEmpty() == false
+				&& topRatedBooks.size() == 2
+				&& topRatedBook.getISBN() == TEST_ISBN + 1);
+	}
+
+	@Test(expected = BookStoreException.class)
+	public void testGetNegativeTopRatedBooks() throws BookStoreException {
+		Set<StockBook> booksToAdd = new HashSet<StockBook>();
+		StockBook book2 = new ImmutableStockBook(TEST_ISBN + 1, "The Art of Computer Programming", "Donald Knuth",
+				(float) 300, NUM_COPIES, 0, 2, 10, false);
+		booksToAdd.add(book2);
+		StockBook book3 = new ImmutableStockBook(TEST_ISBN + 2, "The C Programming Language",
+				"Dennis Ritchie and Brian Kerninghan", (float) 50, NUM_COPIES, 0, 2, 6, false);
+		booksToAdd.add(book3);
+
+		// Add books in bookstore.
+		storeManager.addBooks(booksToAdd);
+
+		List<Book> topRatedBooks = client.getTopRatedBooks(-1);
+		Book topRatedBook = topRatedBooks.get(0);
 	}
 
 	@Test
